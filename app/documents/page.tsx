@@ -1,5 +1,6 @@
-import { documents } from "../../lib/documents";
-import DocumentCard from "../components/DocumentCard";
+import DocumentCard from "@/app/components/DocumentCard";
+import { documents } from "@/lib/documents";
+
 export default function DocumentsPage() {
   return (
     <main className="max-w-5xl mx-auto p-8">
@@ -11,7 +12,7 @@ export default function DocumentsPage() {
       </section>
       <section className="grid gap-6">
         {documents.map((document) => (
-          <DocumentCard key={document.title} document={document} />
+          <DocumentCard key={document.slug} document={document} />
         ))}
       </section>
     </main>
