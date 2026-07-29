@@ -21,7 +21,8 @@ export interface Resource {
 
   title: string;
   subtitle?: string;
-  author: string;
+  authorId: string;
+  organizationId: string;
   slug: string;
 
   primaryScripture?: string;
@@ -29,8 +30,8 @@ export interface Resource {
 
   categories: string[];
   topics: string[];
-  series?: string;
-  collection?: string;
+  seriesId?: string;
+  collectionId?: string;
 
   summary: string;
   objective?: string;
@@ -67,13 +68,14 @@ export const faithfulOverAFewThingsResource: Resource = {
   type: "sermon",
   title: "Faithful Over A Few Things",
   subtitle: "Small Responsibilities Prepare Us For Greater Things",
-  author: "J. R. Black",
+  authorId: "PER-000001",
+  organizationId: "ORG-000001",
   slug: "faithful-over-a-few-things",
   primaryScripture: "Matthew 25:21",
   supportingScriptures: [],
   categories: ["Sermon"],
   topics: ["Faithfulness", "Stewardship", "Service"],
-  collection: "Treasury of Truth",
+  collectionId: "COL-000001",
   summary:
     "A sermon on stewardship, faithfulness, and the reward of serving God well in small responsibilities.",
   objective:
