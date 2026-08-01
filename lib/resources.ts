@@ -1,3 +1,4 @@
+import type { ScriptureReference } from "./scripture";
 export type ResourceType =
   | "sermon"
   | "bible-study"
@@ -25,8 +26,8 @@ export interface Resource {
   organizationId: string;
   slug: string;
 
-  primaryScripture?: string;
-  supportingScriptures: string[];
+  primaryScripture?: ScriptureReference;
+  supportingScriptures: ScriptureReference[];
 
   categories: string[];
   topics: string[];
@@ -71,7 +72,12 @@ export const faithfulOverAFewThingsResource: Resource = {
   authorId: "PER-000001",
   organizationId: "ORG-000001",
   slug: "faithful-over-a-few-things",
-  primaryScripture: "Matthew 25:21",
+  primaryScripture: {
+    book: "MAT",
+    chapter: 25,
+    verseStart: 21,
+    verseEnd: 21,
+  },
   supportingScriptures: [],
   categories: ["Sermon"],
   topics: ["Faithfulness", "Stewardship", "Service"],
