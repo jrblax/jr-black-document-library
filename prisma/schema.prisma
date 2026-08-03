@@ -1,0 +1,221 @@
+// Treasury of Truth database schema
+
+generator client {
+  provider = "prisma-client"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserRole {
+  USER
+  EDITOR
+  REVIEWER
+  ADMIN
+  OWNER
+}
+
+enum ContentType {
+  SERMON
+  LESSON
+  ARTICLE
+  NOTE
+  DOCUMENT
+}
+
+enum ContentStatus {
+  DRAFT
+  IN_REVIEW
+  APPROVED
+  PUBLISHED
+  ARCHIVED
+}
+
+enum LibraryScope {
+  PRIVATE
+  SHARED
+  OFFICIAL
+}
+
+enum SermonLength {
+  BLACK_30
+  BLACK_40
+  BLACK_60
+  CUSTOM
+}
+
+model User {
+  id            String   @id @default(cuid())
+  name          String
+  email         String   @unique
+  emailVerified Boolean  @default(false)
+  image         String?
+  role          UserRole @default(USER)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  sessions Session[]
+  accounts Account[]
+  content  Content[]        @relation("ContentOwner")
+  versions ContentVersion[]
+  reviews  ContentReview[]  @relation("Reviewer")
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  expiresAt DateTime
+  token     String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Account {
+  id                    String    @id @default(cuid())
+  accountId             String
+  providerId            String
+  userId                String
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([providerId, accountId])
+  @@index([userId])
+}
+
+model Verification {
+  id         String   @id @default(cuid())
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([identifier])
+}
+
+model Content {
+  id               String        @id @default(cuid())
+  slug             String
+  title            String
+  subtitle         String?
+  summary          String?
+  objective        String?
+  type             ContentType
+  status           ContentStatus @default(DRAFT)
+  scope            LibraryScope  @default(PRIVATE)
+  sermonLength     SermonLength?
+  primaryScripture String?
+  currentBody      String?
+  isAiAssisted     Boolean       @default(false)
+  ownerId          String
+  owner            User          @relation("ContentOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+  publishedAt      DateTime?
+  lastPreachedAt   DateTime?
+
+  versions       ContentVersion[]
+  scriptureLinks ContentScripture[]
+  topicLinks     ContentTopic[]
+  reviews        ContentReview[]
+
+  @@unique([ownerId, slug])
+  @@index([ownerId])
+  @@index([type])
+  @@index([status])
+  @@index([scope])
+}
+
+model ContentVersion {
+  id            String   @id @default(cuid())
+  contentId     String
+  content       Content  @relation(fields: [contentId], references: [id], onDelete: Cascade)
+  authorId      String
+  author        User     @relation(fields: [authorId], references: [id], onDelete: Restrict)
+  versionNumber Int
+  title         String
+  subtitle      String?
+  body          String
+  changeNote    String?
+  isAiGenerated Boolean  @default(false)
+  createdAt     DateTime @default(now())
+
+  @@unique([contentId, versionNumber])
+  @@index([contentId])
+  @@index([authorId])
+}
+
+model ScriptureReference {
+  id        String   @id @default(cuid())
+  book      String
+  chapter   Int
+  verseFrom Int?
+  verseTo   Int?
+  display   String
+  createdAt DateTime @default(now())
+
+  contentLinks ContentScripture[]
+
+  @@unique([book, chapter, verseFrom, verseTo])
+  @@index([book, chapter])
+}
+
+model ContentScripture {
+  contentId   String
+  scriptureId String
+  isPrimary   Boolean            @default(false)
+  content     Content            @relation(fields: [contentId], references: [id], onDelete: Cascade)
+  scripture   ScriptureReference @relation(fields: [scriptureId], references: [id], onDelete: Cascade)
+
+  @@id([contentId, scriptureId])
+  @@index([scriptureId])
+}
+
+model Topic {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  slug        String   @unique
+  description String?
+  createdAt   DateTime @default(now())
+
+  contentLinks ContentTopic[]
+}
+
+model ContentTopic {
+  contentId String
+  topicId   String
+  content   Content @relation(fields: [contentId], references: [id], onDelete: Cascade)
+  topic     Topic   @relation(fields: [topicId], references: [id], onDelete: Cascade)
+
+  @@id([contentId, topicId])
+  @@index([topicId])
+}
+
+model ContentReview {
+  id         String        @id @default(cuid())
+  contentId  String
+  content    Content       @relation(fields: [contentId], references: [id], onDelete: Cascade)
+  reviewerId String
+  reviewer   User          @relation("Reviewer", fields: [reviewerId], references: [id], onDelete: Restrict)
+  status     ContentStatus
+  notes      String?
+  createdAt  DateTime      @default(now())
+
+  @@index([contentId])
+  @@index([reviewerId])
+}
