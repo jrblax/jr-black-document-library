@@ -3,7 +3,7 @@ import { headers } from "next/headers";
 import { notFound, redirect } from "next/navigation";
 
 import { updateSermonTitle } from "@/app/account/actions/update-sermon-title";
-import { SermonManuscriptForm } from "@/app/account/components/SermonManuscriptForm";
+import { SermonEditorWorkspace } from "@/app/account/components/SermonEditorWorkspace";
 import { auth } from "@/lib/auth";
 import { ContentType } from "@/lib/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
@@ -32,6 +32,31 @@ export default async function SermonEditorPage({
       id,
       ownerId: session.user.id,
       type: ContentType.SERMON,
+    },
+    include: {
+      versions: {
+        orderBy: {
+          versionNumber: "desc",
+        },
+        select: {
+          id: true,
+          changeNote: true,
+          createdAt: true,
+          title: true,
+          versionNumber: true,
+          author: {
+            select: {
+              name: true,
+            },
+          },
+        },
+        take: 25,
+      },
+      _count: {
+        select: {
+          versions: true,
+        },
+      },
     },
   });
 
@@ -109,9 +134,19 @@ export default async function SermonEditorPage({
               </p>
             </div>
 
-            <SermonManuscriptForm
+            <SermonEditorWorkspace
+              currentVersionId={sermon.versions[0]?.id ?? null}
               initialBody={sermon.currentBody ?? ""}
               sermonId={sermon.id}
+              totalVersions={sermon._count.versions}
+              versions={sermon.versions.map((version) => ({
+                id: version.id,
+                authorName: version.author.name,
+                changeNote: version.changeNote,
+                createdAt: version.createdAt.toISOString(),
+                title: version.title,
+                versionNumber: version.versionNumber,
+              }))}
             />
           </div>
         </div>

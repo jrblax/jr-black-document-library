@@ -10,6 +10,7 @@ import {
 
 type SermonManuscriptFormProps = {
   initialBody: string;
+  onDirtyChange?: (hasUnsavedChanges: boolean) => void;
   sermonId: string;
 };
 
@@ -34,21 +35,34 @@ function SaveManuscriptButton() {
 
 export function SermonManuscriptForm({
   initialBody,
+  onDirtyChange,
   sermonId,
 }: SermonManuscriptFormProps) {
-  const [state, formAction] = useActionState(
-    updateSermonManuscript,
-    initialState,
-  );
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
-  function handleSubmit(formData: FormData) {
-    setHasUnsavedChanges(false);
-    formAction(formData);
+  async function saveManuscript(
+    previousState: ManuscriptActionState,
+    formData: FormData,
+  ) {
+    const result = await updateSermonManuscript(previousState, formData);
+
+    if (result.status === "success") {
+      setHasUnsavedChanges(false);
+      onDirtyChange?.(false);
+    }
+
+    return result;
+  }
+
+  const [state, formAction] = useActionState(saveManuscript, initialState);
+
+  function handleManuscriptChange() {
+    setHasUnsavedChanges(true);
+    onDirtyChange?.(true);
   }
 
   return (
-    <form action={handleSubmit}>
+    <form action={formAction}>
       <input name="sermonId" type="hidden" value={sermonId} />
 
       <label
@@ -64,7 +78,7 @@ export function SermonManuscriptForm({
         id="manuscript"
         maxLength={100_000}
         name="manuscript"
-        onChange={() => setHasUnsavedChanges(true)}
+        onChange={handleManuscriptChange}
         placeholder="Begin writing your sermon manuscript…"
       />
 
