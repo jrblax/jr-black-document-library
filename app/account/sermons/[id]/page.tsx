@@ -3,6 +3,7 @@ import { headers } from "next/headers";
 import { notFound, redirect } from "next/navigation";
 
 import { updateSermonTitle } from "@/app/account/actions/update-sermon-title";
+import { SermonManuscriptForm } from "@/app/account/components/SermonManuscriptForm";
 import { auth } from "@/lib/auth";
 import { ContentType } from "@/lib/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
@@ -108,16 +109,10 @@ export default async function SermonEditorPage({
               </p>
             </div>
 
-            <div>
-              <p className="text-sm font-semibold text-slate-500">
-                Sermon Manuscript
-              </p>
-
-              <div className="mt-3 min-h-72 rounded-xl border border-dashed border-stone-300 bg-stone-50 p-6 text-slate-500">
-                {sermon.currentBody ||
-                  "The editable sermon manuscript will appear here in the next step."}
-              </div>
-            </div>
+            <SermonManuscriptForm
+              initialBody={sermon.currentBody ?? ""}
+              sermonId={sermon.id}
+            />
           </div>
         </div>
       </section>
