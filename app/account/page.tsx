@@ -73,9 +73,11 @@ export default async function AccountPage() {
             </p>
           </div>
 
-          <form action={createSermon}>
-            <CreateSermonButton idleLabel="+ New Sermon" />
-          </form>
+          {totalSermons > 0 && (
+            <form action={createSermon}>
+              <CreateSermonButton idleLabel="+ New Sermon" />
+            </form>
+          )}
         </div>
 
         <div className="mt-10 grid gap-5 sm:grid-cols-3">
